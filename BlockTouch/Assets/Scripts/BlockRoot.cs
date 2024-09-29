@@ -7,6 +7,54 @@ public class BlockRoot : MonoBehaviour
     public GameObject blockPrefab = null;
     public BlockControl[,] blocks;
 
+    private GameObject mainCam = null;
+    private BlockControl grabbedBlock = null;
+
+    private void Start()
+    {
+        mainCam = Camera.main.gameObject;
+    }
+
+    // 마우스 좌표와 겹치는지 확인
+    // 잡을 수 있는 상태의 블록을 잡는다
+
+    private void Update()
+    {
+        Vector3 mousePos;
+        unprojectMousePosition(out mousePos, Input.mousePosition);
+
+        Vector2 mousePositionXY = new Vector2(mousePos.x, mousePos.y);
+
+        if(grabbedBlock == null)
+        {
+            if(Input.GetMouseButtonDown(0))
+            {
+                foreach(BlockControl block in blocks)
+                {
+                    if(!block.IsGrabbable())
+                    {
+                        continue;
+                    }
+                    if(!block.IsContainedPosition(mousePositionXY))
+                    {
+                        continue;
+                    }
+                    grabbedBlock = block;
+                    grabbedBlock.BeginGrab();
+                    break;
+                }
+            }
+        }
+        else
+        {
+            if(!Input.GetMouseButton(0))
+            {
+                grabbedBlock.EndGrab();
+                grabbedBlock = null;
+            }
+        }
+    }
+
     public void InitialSetUp()
     {
         this.blocks = new BlockControl[Blocks.BLOCK_NUM_X, Blocks.BLOCK_NUM_Y];
@@ -45,5 +93,29 @@ public class BlockRoot : MonoBehaviour
         position.y += (float)i_pos.y * Blocks.COLLISION_SIZE;
 
         return position;
+    }
+
+    public bool unprojectMousePosition(out Vector3 worldPosition, Vector3 mousePosition)
+    {
+        bool ret;
+
+        Plane plane = new Plane(Vector3.back, new Vector3(0f, 0f, -Blocks.COLLISION_SIZE / 2.0f));
+
+        Ray ray = mainCam.GetComponent<Camera>().ScreenPointToRay(mousePosition);
+
+        float depth;
+
+        if(plane.Raycast(ray, out depth))
+        {
+            worldPosition = ray.origin + ray.direction * depth;
+            ret = true;
+        }
+        else
+        {
+            worldPosition = Vector3.zero;
+            ret = false;
+        }
+        
+        return ret;
     }
 }

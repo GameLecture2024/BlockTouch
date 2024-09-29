@@ -13,6 +13,19 @@ public class Blocks
         public int y;
     }
 
+    public enum STEP
+    {
+        NONE = -1,
+        IDLE = 0,
+        GRABBED,
+        RELEASED,
+        SLIDE,
+        VACANT,
+        RESPAWN,
+        FALL,
+        LONG_SLIDE,
+        NUM,
+    }
     public enum COLOR
     {
         NONE = -1,
